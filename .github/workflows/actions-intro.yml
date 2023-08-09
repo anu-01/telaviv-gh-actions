@@ -17,5 +17,8 @@ jobs:
       - run: |
           ls ${{ github. workspace }}
           echo " files listed "
+
+      - name: Markdown example
+        run: echo " Hello world " >> $GITHUB _STEP_SUMMARY
           
   
