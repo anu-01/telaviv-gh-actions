@@ -19,6 +19,6 @@ jobs:
           echo " files listed "
 
       - name: Markdown example
-        run: echo " Hello world " >> $GITHUB _STEP_SUMMARY
+        run: echo "Hello world" >> $GITHUB_STEP_SUMMARY
           
   
