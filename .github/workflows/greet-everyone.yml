@@ -1,0 +1,32 @@
+name: 02-1 Greet Everyone
+
+on:
+ 
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'What is your name'
+        required: false
+        default: 'Frasers Group'
+  
+  
+jobs:
+    greet-users:
+      name: Greeting
+      runs-on: ubuntu-latest
+      
+      steps:
+        - name: Hello world
+          uses: actions/hello-world-javascript-action@v1
+          with:
+            who-to-greet: "$ {{ github.event.inputs.name }}${{ inputs.name }}"
+          id: hello
+          
+        - name: Echo the greeting's time
+          run: echo 'the time was ${{ steps.hello.outputs.time }}.'
+          
+          
+          
+          
+          
+    
