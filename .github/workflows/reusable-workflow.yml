@@ -1,0 +1,8 @@
+name: 04- Call rEusable workflow
+
+on:
+ workflow_dispatch:
+
+jobs:
+   call_reusable_workflow:
+     uses: anu-01/telaviv-gh-actions/.github/workflows/job-dependencies.yml@main
