@@ -1,0 +1,69 @@
+name: 07-2. CD Workflow 
+
+on:
+  workflow_dispatch:
+
+env:
+  AZURE_WEBAPP_NAME: demo-dotnetapp    # set this to your application's name
+  AZURE_WEBAPP_PACKAGE_PATH: '.'      # set this to the path to your web app project, defaults to the repository root
+  DOTNET_VERSION: '6.0.x'                # set this to the node version to use
+
+# We only want to allow one deploy-to-prod workflow running at any point in time
+concurrency: 
+  group: cd-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+     # Checkout the repo
+    - uses: actions/checkout@main
+      with:
+        repository: anu-01/sample-dotnetcore-app
+    
+    # Setup .NET Core SDK
+    - name: Setup Dotnet 6.0.x
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        
+    # Run dotnet build and publish    
+    - name: dotnet build and publish
+      run: |
+        dotnet restore
+        dotnet build --configuration Release
+        dotnet publish -c Release --property:PublishDir='${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/myapp'
+        
+    - name: Upload artifact for deployment job
+      uses: actions/upload-artifact@v2
+      with:
+          name: .net-app
+          path: ${{env.AZURE_WEBAPP_PACKAGE_PATH}}/myapp
+    
+  deploy:
+      runs-on: windows-latest
+      needs: build
+      environment:
+        name: 'production'
+        url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+
+      steps:
+        - name: Download artifact from build job
+          uses: actions/download-artifact@v2
+          with:
+            name: .net-app
+
+        - uses: azure/login@v1
+          with:
+           creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+        - name: Deploy to Azure Web App
+          id: deploy-to-webapp
+          uses: azure/webapps-deploy@v2
+          with:
+            app-name: ${{env.AZURE_WEBAPP_NAME}}
+            slot-name: 'production'
+            publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}  # Define secret variable in repository settings as per action documentation
+            package: .
